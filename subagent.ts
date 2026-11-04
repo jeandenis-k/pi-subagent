@@ -2,7 +2,6 @@
 
 import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, renameSync, writeFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -287,7 +286,7 @@ async function stopSubagent(args: string[]): Promise<void> {
 	if (args.length !== 1) usage();
 	const metadata = getRun(args[0]);
 	const wasRunning = multiplexer.sessionExists(metadata.handle);
-	spawnSync("tmux", ["kill-session", "-t", metadata.tmuxSession], { stdio: "ignore" });
+	multiplexer.killSession(metadata.handle);
 	if (wasRunning) await waitForRunShutdown(metadata.runDir);
 	removeRunDir(metadata.runDir);
 	process.stdout.write(`Stopped ${runDisplayName(metadata)}\n`);

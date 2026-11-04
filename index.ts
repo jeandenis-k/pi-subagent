@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, unlinkSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -185,7 +185,7 @@ export default function subagentExtension(pi: ExtensionAPI) {
 					continue;
 				}
 				updateMetadata(run.runDir, { suspended: true });
-				spawnSync("tmux", ["kill-session", "-t", run.tmuxSession], { stdio: "ignore" });
+				multiplexer.killSession(run.handle);
 				await waitForRunShutdown(run.runDir);
 			}
 		});
