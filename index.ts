@@ -14,10 +14,10 @@ import {
 	runDisplayName,
 	type InboxMessage,
 	type RunMetadata,
-	tmuxSessionExists,
 	updateMetadata,
 	waitForRunShutdown,
 } from "./shared.ts";
+import { multiplexer } from "./multiplexer.ts";
 
 const packageDir = dirname(fileURLToPath(import.meta.url));
 
@@ -149,7 +149,7 @@ export default function subagentExtension(pi: ExtensionAPI) {
 		pi.on("session_start", (_event, ctx) => {
 			// Relaunch children that were suspended when this session was last quit or switched away from.
 			for (const run of listRuns(ctx.sessionManager.getSessionId())) {
-				if (!run.suspended || tmuxSessionExists(run.tmuxSession)) continue;
+				if (!run.suspended || multiplexer.sessionExists(run.handle)) continue;
 				if (!existsSync(run.sessionFile)) {
 					removeRunDir(run.runDir);
 					continue;
@@ -180,7 +180,7 @@ export default function subagentExtension(pi: ExtensionAPI) {
 			// Suspend running children: stop the process but keep transcript and metadata so resuming this
 			// session relaunches them. Children that already exited on their own are discarded.
 			for (const run of listRuns(ctx.sessionManager.getSessionId())) {
-				if (!tmuxSessionExists(run.tmuxSession)) {
+				if (!multiplexer.sessionExists(run.handle)) {
 					if (!run.suspended) removeRunDir(run.runDir);
 					continue;
 				}
