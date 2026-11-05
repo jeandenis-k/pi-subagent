@@ -31,4 +31,7 @@ export const tmuxMultiplexer: Multiplexer = {
 		);
 		if (result.status !== 0) throw new Error(result.stderr.trim() || "Failed to create tmux session");
 	},
+	attachHint(handle) {
+		return `tmux attach -t pi-subagent-${handle}`;
+	},
 };

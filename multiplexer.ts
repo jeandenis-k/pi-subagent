@@ -10,6 +10,7 @@ export interface Multiplexer {
 	sessionExists(handle: string): boolean;
 	killSession(handle: string): void;
 	launch(handle: string, command: LaunchCommand): void;
+	attachHint(handle: string): string;
 }
 
 export const multiplexer: Multiplexer = tmuxMultiplexer;
