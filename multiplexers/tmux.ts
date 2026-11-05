@@ -8,4 +8,27 @@ export const tmuxMultiplexer: Multiplexer = {
 	killSession(handle) {
 		spawnSync("tmux", ["kill-session", "-t", `pi-subagent-${handle}`], { stdio: "ignore" });
 	},
+	launch(handle, command) {
+		const result = spawnSync(
+			"tmux",
+			[
+				"new-session",
+				"-d",
+				"-s",
+				`pi-subagent-${handle}`,
+				"-x",
+				"120",
+				"-y",
+				"40",
+				"-c",
+				command.cwd,
+				"--",
+				"env",
+				...Object.entries(command.env).map(([name, value]) => `${name}=${value}`),
+				...command.argv,
+			],
+			{ encoding: "utf8" },
+		);
+		if (result.status !== 0) throw new Error(result.stderr.trim() || "Failed to create tmux session");
+	},
 };

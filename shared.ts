@@ -1,4 +1,3 @@
-import { spawnSync } from "node:child_process";
 import {
 	accessSync,
 	constants,
@@ -152,7 +151,7 @@ export function removeRunDir(runDir: string): void {
 	rmSync(runDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
 }
 
-/** Start the child pi process for a run in its tmux session. `initialArgs` are only passed on first spawn. */
+/** Start the child pi process for a run through the multiplexer. `initialArgs` are only passed on first spawn. */
 export function launchRun(metadata: RunMetadata, initialArgs: string[] = []): void {
 	let launcher = "pi";
 	const testLauncher = join(metadata.cwd, "pi-test.sh");
@@ -163,22 +162,10 @@ export function launchRun(metadata: RunMetadata, initialArgs: string[] = []): vo
 		// Use the installed pi executable.
 	}
 
-	const result = spawnSync(
-		"tmux",
-		[
-			"new-session",
-			"-d",
-			"-s",
-			metadata.tmuxSession,
-			"-x",
-			"120",
-			"-y",
-			"40",
-			"-c",
-			metadata.cwd,
-			"--",
-			"env",
-			`PI_SUBAGENT_RUN_DIR=${metadata.runDir}`,
+	multiplexer.launch(metadata.handle, {
+		cwd: metadata.cwd,
+		env: { PI_SUBAGENT_RUN_DIR: metadata.runDir },
+		argv: [
 			launcher,
 			"--session",
 			metadata.sessionFile,
@@ -191,9 +178,7 @@ export function launchRun(metadata: RunMetadata, initialArgs: string[] = []): vo
 			...(metadata.launchArgs ?? []),
 			...initialArgs,
 		],
-		{ encoding: "utf8" },
-	);
-	if (result.status !== 0) throw new Error(result.stderr.trim() || "Failed to create tmux session");
+	});
 }
 
 export function effectiveRunState(metadata: RunMetadata): RunState {
